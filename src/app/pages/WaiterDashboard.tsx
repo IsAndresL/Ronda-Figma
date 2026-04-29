@@ -22,7 +22,7 @@ import { useNavigate } from 'react-router-dom';
 type ViewType = 'tables' | 'orders' | 'payments';
 
 export function WaiterDashboard() {
-  const { currentWaiter } = useWaiterAuth();
+  const { currentWaiter, logout } = useWaiterAuth();
   const navigate = useNavigate();
 
   useEffect(() => {

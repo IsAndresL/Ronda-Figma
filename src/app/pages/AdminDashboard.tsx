@@ -33,7 +33,7 @@ import {
 type TabType = 'overview' | 'orders' | 'payments' | 'menu' | 'tables' | 'waiters';
 
 export function AdminDashboard() {
-  const { currentAdmin, ready } = useAdminAuth();
+  const { currentAdmin, ready, logout } = useAdminAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [loading, setLoading] = useState(true);
