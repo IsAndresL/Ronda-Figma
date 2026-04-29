@@ -1,30 +1,67 @@
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useSession } from '../context/SessionContext';
-import { tables, getInitials } from '../data/mockData';
-import { Utensils } from 'lucide-react';
+import { getInitials, Table } from '../data/mockData';
+import { Utensils, Loader2 } from 'lucide-react';
+import { getSupabase } from '../lib/supabaseClient';
 
 export function VirtualTable() {
   const { qrCode } = useParams<{ qrCode: string }>();
   const navigate = useNavigate();
-  const { session } = useSession();
+  const { currentUser } = useSession();
+  const [table, setTable] = useState<Table | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const table = qrCode ? tables[qrCode as keyof typeof tables] : null;
+  useEffect(() => {
+    const fetchTable = async () => {
+      if (!qrCode) {
+        navigate('/');
+        return;
+      }
+      
+      const supabase = getSupabase();
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
 
-  if (!table) {
-    navigate('/');
-    return null;
+      const { data, error } = await supabase
+        .from('tables')
+        .select('*')
+        .eq('qr_code', qrCode)
+        .maybeSingle();
+
+      if (error || !data) {
+        navigate('/');
+      } else {
+        setTable(data as Table);
+      }
+      setLoading(false);
+    };
+
+    void fetchTable();
+  }, [qrCode, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-orange-500 to-orange-600 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-white animate-spin" />
+      </div>
+    );
   }
 
+  if (!table) return null;
+
   // Add current user to diners if not already there
-  const allDiners = [...table.comensales];
-  if (session?.user && !allDiners.find(d => d.nombre === session.user.nombre)) {
+  const allDiners = [...(table.comensales || [])];
+  if (currentUser && !allDiners.find(d => d.nombre === currentUser.nombre)) {
     // Generate a color for the new user
     const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#A8E6CF', '#FFD3B6', '#FFAAA5'];
     const usedColors = allDiners.map(d => d.color);
     const availableColor = colors.find(c => !usedColors.includes(c)) || colors[0];
     
     allDiners.push({
-      nombre: session.user.nombre,
+      nombre: currentUser.nombre,
       color: availableColor
     });
   }
@@ -88,7 +125,7 @@ export function VirtualTable() {
     return positions[total]?.[index] || 'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2';
   };
 
-  const currentUserName = session?.user?.nombre;
+  const currentUserName = currentUser?.nombre;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-500 to-orange-600 flex items-center justify-center p-4">

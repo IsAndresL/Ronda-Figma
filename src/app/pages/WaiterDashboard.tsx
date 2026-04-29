@@ -387,7 +387,7 @@ export function WaiterDashboard() {
                 if (diners.length === 0) return null;
 
                 return (
-                  <div key={table.id} className="bg-white rounded-lg shadow-sm border p-6">
+                  <div key={table.qr_code} className="bg-white rounded-lg shadow-sm border p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="text-xl font-medium">Mesa {table.numero}</h3>

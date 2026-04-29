@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useSession } from '../context/SessionContext';
-import { tables } from '../data/mockData';
-import { Copy, Check } from 'lucide-react';
+import { Table } from '../data/mockData';
+import { Copy, Check, Loader2 } from 'lucide-react';
 import { copyToClipboard } from '../utils/clipboard';
 import { TableDiners } from '../components/TableDiners';
+import { getSupabase } from '../lib/supabaseClient';
 
 export function Onboarding() {
   const { qrCode } = useParams<{ qrCode: string }>();
@@ -13,8 +14,37 @@ export function Onboarding() {
   const [nombre, setNombre] = useState('');
   const [showRecoveryUrl, setShowRecoveryUrl] = useState(false);
   const [copied, setCopied] = useState(false);
+  
+  const [table, setTable] = useState<Table | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const table = qrCode ? tables[qrCode as keyof typeof tables] : null;
+  useEffect(() => {
+    const fetchTable = async () => {
+      if (!qrCode) {
+        setLoading(false);
+        return;
+      }
+      
+      const supabase = getSupabase();
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('tables')
+        .select('*')
+        .eq('qr_code', qrCode)
+        .maybeSingle();
+
+      if (!error && data) {
+        setTable(data as Table);
+      }
+      setLoading(false);
+    };
+
+    void fetchTable();
+  }, [qrCode]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +77,14 @@ export function Onboarding() {
   const handleContinue = () => {
     navigate(`/table/${qrCode}`);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
+      </div>
+    );
+  }
 
   if (!table) {
     return (

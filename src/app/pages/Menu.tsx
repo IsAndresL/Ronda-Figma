@@ -1,29 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ShoppingCart, User, Receipt } from 'lucide-react';
 import { useSession } from '../context/SessionContext';
 import { useCart } from '../context/CartContext';
-import { categories, menuItems, MenuItem as MenuItemType, formatCOP, tables } from '../data/mockData';
+import { categories, menuItems, MenuItem as MenuItemType, formatCOP, Table } from '../data/mockData';
 import { MenuItem } from '../components/MenuItem';
 import { ModifierModal } from '../components/ModifierModal';
 import { CartDrawer } from '../components/CartDrawer';
 import { TableDiners } from '../components/TableDiners';
+import { getSupabase } from '../lib/supabaseClient';
 
 export function Menu() {
   const { qrCode } = useParams<{ qrCode: string }>();
   const navigate = useNavigate();
   const { currentUser, tableNumber } = useSession();
-  const { addItem, totalItems, subtotal } = useCart();
+  const { addItem, totalItems } = useCart();
   const [selectedCategory, setSelectedCategory] = useState(categories[0].id);
   const [selectedItem, setSelectedItem] = useState<MenuItemType | null>(null);
   const [showCart, setShowCart] = useState(false);
+  
+  const [currentTable, setCurrentTable] = useState<Table | null>(null);
+
+  useEffect(() => {
+    if (!currentUser || !qrCode) {
+      navigate(`/onboarding/${qrCode}`);
+      return;
+    }
+
+    const fetchTable = async () => {
+      const supabase = getSupabase();
+      if (!supabase) return;
+      const { data } = await supabase.from('tables').select('*').eq('qr_code', qrCode).maybeSingle();
+      if (data) setCurrentTable(data as Table);
+    };
+
+    void fetchTable();
+  }, [qrCode, currentUser, navigate]);
 
   if (!currentUser || !qrCode) {
-    navigate(`/onboarding/${qrCode}`);
     return null;
   }
-
-  const currentTable = qrCode ? tables[qrCode as keyof typeof tables] : null;
 
   const filteredItems = menuItems.filter(
     (item) => item.categoria_id === selectedCategory
