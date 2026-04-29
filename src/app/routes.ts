@@ -8,7 +8,9 @@ import { Account } from "./pages/Account";
 import { Payment } from "./pages/Payment";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { AdminLogin } from "./pages/AdminLogin";
 import { WaiterDashboard } from "./pages/WaiterDashboard";
+import { WaiterLogin } from "./pages/WaiterLogin";
 import { NotFound } from "./pages/NotFound";
 
 export const router = createBrowserRouter([
@@ -24,7 +26,9 @@ export const router = createBrowserRouter([
       { path: "payment/:qrCode", Component: Payment },
       { path: "success/:qrCode", Component: PaymentSuccess },
       { path: "admin", Component: AdminDashboard },
+      { path: "admin/login", Component: AdminLogin },
       { path: "waiter", Component: WaiterDashboard },
+      { path: "waiter/login", Component: WaiterLogin },
       { path: "*", Component: NotFound },
     ],
   },

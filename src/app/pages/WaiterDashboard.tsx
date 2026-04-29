@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Utensils, 
   CreditCard, 
@@ -15,10 +15,18 @@ import {
   Eye
 } from 'lucide-react';
 import { tables, mockOrders, mockPayments, formatCOP, Order, Payment, getInitials, getDinersByTable } from '../data/mockData';
+import { useWaiterAuth } from '../context/WaiterAuthContext';
+import { useNavigate } from 'react-router-dom';
 
 type ViewType = 'tables' | 'orders' | 'payments';
 
 export function WaiterDashboard() {
+  const { currentWaiter } = useWaiterAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!currentWaiter) navigate('/waiter/login');
+  }, [currentWaiter, navigate]);
   const [activeView, setActiveView] = useState<ViewType>('tables');
   const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [payments, setPayments] = useState<Payment[]>(mockPayments);
@@ -173,7 +181,7 @@ export function WaiterDashboard() {
 
               return (
                 <div 
-                  key={table.id} 
+                  key={table.qr_code} 
                   className={`bg-white rounded-lg shadow-sm border p-6 cursor-pointer transition-all hover:shadow-md ${
                     table.estado === 'libre' ? 'opacity-60' : ''
                   }`}

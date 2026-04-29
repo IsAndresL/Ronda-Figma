@@ -138,6 +138,41 @@ export const menuItems: MenuItem[] = [
   },
 ];
 
+// Menu CRUD utilities
+export function generateMenuItemId(nombre: string) {
+  return `MI-${nombre.replace(/\s+/g, '-').toUpperCase()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+}
+
+export function createMenuItem(data: Partial<MenuItem>) {
+  const id = data.id ?? generateMenuItemId(data.nombre ?? 'ITEM');
+  const item: MenuItem = {
+    id,
+    nombre: data.nombre ?? 'Nuevo Item',
+    descripcion: data.descripcion ?? '',
+    precio: data.precio ?? 0,
+    categoria_id: data.categoria_id ?? categories[0]?.id ?? 'entradas',
+    foto_url: data.foto_url ?? '',
+    disponible: data.disponible ?? true,
+    modificadores: data.modificadores ?? [],
+  };
+  menuItems.push(item);
+  return item;
+}
+
+export function updateMenuItem(id: string, changes: Partial<MenuItem>) {
+  const idx = menuItems.findIndex(m => m.id === id);
+  if (idx === -1) return null;
+  menuItems[idx] = { ...menuItems[idx], ...changes };
+  return menuItems[idx];
+}
+
+export function deleteMenuItem(id: string) {
+  const idx = menuItems.findIndex(m => m.id === id);
+  if (idx === -1) return false;
+  menuItems.splice(idx, 1);
+  return true;
+}
+
 // Tables
 export interface Table {
   qr_code: string;
@@ -149,45 +184,34 @@ export interface Table {
   }[];
 }
 
-export const tables: Record<string, Table> = {
-  'qr-mesa-4': {
-    qr_code: 'qr-mesa-4',
-    numero: '4',
-    estado: 'ocupada',
-    comensales: [
-      { nombre: 'Carlos Ramírez', color: '#FF6B6B' },
-      { nombre: 'María González', color: '#4ECDC4' },
-      { nombre: 'Juan Pérez', color: '#FFE66D' },
-    ],
-  },
-  'qr-mesa-7': {
-    qr_code: 'qr-mesa-7',
-    numero: '7',
-    estado: 'ocupada',
-    comensales: [
-      { nombre: 'Ana Torres', color: '#95E1D3' },
-      { nombre: 'Luis Martínez', color: '#F38181' },
-    ],
-  },
-  'qr-mesa-1': {
-    qr_code: 'qr-mesa-1',
-    numero: '1',
-    estado: 'libre',
+// Iniciar sin mesas de ejemplo. El administrador creará mesas en tiempo de ejecución.
+export const tables: Record<string, Table> = {};
+
+// Utilidades para gestionar mesas en memoria (temporal, migrar a BD real posteriormente)
+export function generateTableId(numero: string): string {
+  const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `MESA-${numero}-${suffix}`;
+}
+
+export function createTable(numero: string, estado: Table['estado'] = 'libre') {
+  const id = generateTableId(numero);
+  const table: Table = {
+    qr_code: id,
+    numero: String(numero),
+    estado,
     comensales: [],
-  },
-  'qr-mesa-2': {
-    qr_code: 'qr-mesa-2',
-    numero: '2',
-    estado: 'libre',
-    comensales: [],
-  },
-  'qr-mesa-3': {
-    qr_code: 'qr-mesa-3',
-    numero: '3',
-    estado: 'libre',
-    comensales: [],
-  },
-};
+  };
+  tables[id] = table;
+  return table;
+}
+
+export function deleteTable(qrCode: string) {
+  if (tables[qrCode]) {
+    delete tables[qrCode];
+    return true;
+  }
+  return false;
+}
 
 // Orders
 export interface Order {
@@ -207,50 +231,8 @@ export interface Order {
   tipo: 'personal' | 'compartido';
 }
 
-export const mockOrders: Order[] = [
-  {
-    id: 'ord-1',
-    mesa_numero: '4',
-    comensal: 'Carlos Ramírez',
-    items: [
-      { nombre: 'Bandeja Paisa', cantidad: 1, precio: 35000, modificadores: ['Chorizo'] },
-      { nombre: 'Jugo Natural', cantidad: 1, precio: 8000, modificadores: ['Mora'] },
-    ],
-    total: 48000,
-    estado: 'listo',
-    fecha: '2026-03-16',
-    hora: '12:30',
-    tipo: 'personal',
-  },
-  {
-    id: 'ord-2',
-    mesa_numero: '4',
-    comensal: 'María González',
-    items: [
-      { nombre: 'Ajiaco', cantidad: 1, precio: 28000, modificadores: [] },
-      { nombre: 'Jugo Natural', cantidad: 1, precio: 8000, modificadores: ['Lulo'] },
-    ],
-    total: 36000,
-    estado: 'en_preparacion',
-    fecha: '2026-03-16',
-    hora: '12:35',
-    tipo: 'personal',
-  },
-  {
-    id: 'ord-3',
-    mesa_numero: '7',
-    comensal: 'Ana Torres',
-    items: [
-      { nombre: 'Empanadas', cantidad: 2, precio: 15000, modificadores: [] },
-      { nombre: 'Jugo Natural', cantidad: 1, precio: 8000, modificadores: ['Maracuyá'] },
-    ],
-    total: 38000,
-    estado: 'servido',
-    fecha: '2026-03-16',
-    hora: '13:00',
-    tipo: 'personal',
-  },
-];
+// Sin órdenes de ejemplo; la aplicación creará órdenes reales en tiempo de ejecución.
+export const mockOrders: Order[] = [];
 
 // Payments
 export interface Payment {
@@ -266,43 +248,17 @@ export interface Payment {
   comprobante_url?: string;
 }
 
-export const mockPayments: Payment[] = [
-  {
-    id: 'pay-1',
-    mesa_numero: '4',
-    comensal: 'Carlos Ramírez',
-    monto: 4840000, // 4400000 + 10% propina
-    metodo: 'nequi',
-    estado: 'pendiente',
-    referencia: 'RONDA-4-1230-CR',
-    fecha: '2026-03-16',
-    hora: '13:15',
-    comprobante_url: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400',
-  },
-  {
-    id: 'pay-2',
-    mesa_numero: '7',
-    comensal: 'Ana Torres',
-    monto: 2640000,
-    metodo: 'efectivo',
-    estado: 'aprobado',
-    referencia: 'RONDA-7-1300-AT',
-    fecha: '2026-03-16',
-    hora: '13:00',
-  },
-  {
-    id: 'pay-3',
-    mesa_numero: '4',
-    comensal: 'María González',
-    monto: 3850000,
-    metodo: 'daviplata',
-    estado: 'pendiente',
-    referencia: 'RONDA-4-1318-MG',
-    fecha: '2026-03-16',
-    hora: '13:18',
-    comprobante_url: 'https://images.unsplash.com/photo-1554224311-9ff1c4e6f73a?w=400',
-  },
-];
+// Sin pagos de ejemplo; los pagos se registrarán en tiempo de ejecución.
+export const mockPayments: Payment[] = [];
+
+// Meseros, mesas y menú ahora se gestionan desde Supabase.
+export interface Waiter {
+  id: string;
+  nombre: string;
+  email?: string;
+  telefono?: string;
+  activo: boolean;
+}
 
 export interface DinerAccount {
   nombre: string;
