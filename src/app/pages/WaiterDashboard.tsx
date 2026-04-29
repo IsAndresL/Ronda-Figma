@@ -12,7 +12,8 @@ import {
   XCircle,
   Image as ImageIcon,
   X,
-  Eye
+  Eye,
+  LogOut
 } from 'lucide-react';
 import { tables, mockOrders, mockPayments, formatCOP, Order, Payment, getInitials, getDinersByTable } from '../data/mockData';
 import { useWaiterAuth } from '../context/WaiterAuthContext';
@@ -94,9 +95,19 @@ export function WaiterDashboard() {
               <h1 className="text-2xl">Panel Camarero</h1>
               <p className="text-sm text-gray-600">La Mesa Redonda</p>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
-              <Users className="w-5 h-5" />
-              <span className="text-sm font-medium">Mesero</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
+                <Users className="w-5 h-5" />
+                <span className="text-sm font-medium">Mesero</span>
+              </div>
+              <button
+                onClick={() => logout()}
+                className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Cerrar sesión"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="text-sm font-medium hidden sm:inline">Salir</span>
+              </button>
             </div>
           </div>
         </div>
