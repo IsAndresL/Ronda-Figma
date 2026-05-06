@@ -26,7 +26,7 @@ Cuando un cliente escanea el QR:
 3. Si existe, continúa al onboarding y al flujo de menú/pedido/pago.
 4. Si no existe, muestra flujo de error o redirección.
 
-A nivel de despliegue, el frontend está preparado para Vercel (SPA con rewrite a `index.html`), y la persistencia está pensada con Supabase.
+A nivel de despliegue, el frontend está preparado para Vercel (SPA con rewrite a `index.html`), y la persistencia está pensada con Supabase. 
 
 ---
 
